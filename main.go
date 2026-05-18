@@ -108,7 +108,12 @@ func main() {
 	r.HandleFunc("/api/health", healthCheck).Methods("GET", "HEAD", "OPTIONS")
 	r.Handle("/api/vote", authMiddleware(http.HandlerFunc(vote))).Methods("POST", "OPTIONS")
 	r.HandleFunc("/api/fingerprint", getFingerprint).Methods("GET", "OPTIONS")
-
+	r.Handle("/backup-db",
+		adminAuthMiddleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			w.Header().Set("Content-Disposition", "attachment; filename=voting.db")
+			http.ServeFile(w, r, "./voting.db")
+		})),
+	).Methods("GET")
 	userRouter := r.PathPrefix("/api/user").Subrouter()
 	userRouter.Use(authMiddleware)
 	userRouter.HandleFunc("/my-votes", getUserVotes).Methods("GET", "OPTIONS")
