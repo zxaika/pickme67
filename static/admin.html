@@ -1,0 +1,1223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Панель администратора</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .tabs {
+            display: flex;
+            gap: 10px;
+            margin: 20px 0 24px;
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            padding: 10px 16px;
+            border: none;
+            border-radius: 10px;
+            background: #e5e7eb;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .tab-btn.active {
+            background: #2563eb;
+            color: white;
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+            gap: 16px;
+            margin-bottom: 24px;
+        }
+
+        .stat-card {
+            background: white;
+            border-radius: 14px;
+            padding: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+        }
+
+        .stat-title {
+            font-size: 14px;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .stat-value-big {
+            font-size: 28px;
+            font-weight: 700;
+            color: #111827;
+        }
+
+        .section-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+            margin-bottom: 20px;
+        }
+
+        .item-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .item-card {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
+            background: #fafafa;
+        }
+
+        .item-card h4 {
+            margin: 0 0 6px;
+        }
+
+        .muted {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .rule-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .rule-form input,
+        .rule-form select,
+        .rule-form textarea {
+            padding: 10px 12px;
+            border: 1px solid #d1d5db;
+            border-radius: 10px;
+            font-size: 14px;
+        }
+
+        .small-btn {
+            padding: 8px 12px;
+            border: none;
+            border-radius: 8px;
+            background: #2563eb;
+            color: white;
+            cursor: pointer;
+            font-weight: 600;
+            margin-right: 8px;
+            margin-top: 8px;
+        }
+
+        .small-btn.secondary {
+            background: #6b7280;
+        }
+
+        .small-btn.danger {
+            background: #dc2626;
+        }
+
+        .small-btn.success {
+            background: #16a34a;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .badge.green {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge.red {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge.yellow {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .badge.blue {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .polls-title-block {
+            margin-top: 24px;
+        }
+
+        .simple-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .simple-table th,
+        .simple-table td {
+            text-align: left;
+            padding: 10px 8px;
+            border-bottom: 1px solid #e5e7eb;
+            vertical-align: top;
+        }
+
+        .simple-table th {
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        .admin-comment {
+            width: 100%;
+            margin-top: 12px;
+            min-height: 70px;
+            resize: vertical;
+        }
+
+        .author-box {
+            margin-top: 10px;
+            padding: 10px;
+            border-radius: 10px;
+            background: #f3f4f6;
+        }
+
+        .moderation-box {
+            margin-top: 14px;
+            padding-top: 12px;
+            border-top: 1px solid #e5e7eb;
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <div class="logo">Панель администратора</div>
+    <div class="user-info">
+        <a href="/public.html" style="color: #2563eb; text-decoration: none; margin-right: 1rem;">Публичные результаты</a>
+        <span class="username" id="username"></span>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab-btn active" onclick="switchTab('dashboard', this)">Обзор</button>
+        <button class="tab-btn" onclick="switchTab('polls', this)">Голосования</button>
+        <button class="tab-btn" onclick="switchTab('incidents', this)">Инциденты</button>
+        <button class="tab-btn" onclick="switchTab('rules', this)">Правила</button>
+        <button class="tab-btn" onclick="switchTab('analytics', this)">Аналитика</button>
+        <button class="tab-btn" onclick="switchTab('logs', this)">Логи</button>
+    </div>
+
+    <div id="tab-dashboard" class="tab-content active">
+        <div class="dashboard-grid" id="dashboardStats">
+            <div class="stat-card"><div class="stat-title">Загрузка...</div><div class="stat-value-big">...</div></div>
+        </div>
+    </div>
+
+    <div id="tab-polls" class="tab-content">
+        <div class="create-poll-card">
+            <h2>Создать новое голосование</h2>
+            <div class="form-group">
+                <label>Название голосования</label>
+                <input type="text" id="pollTitle" placeholder="Введите название">
+            </div>
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="pollDescription" rows="3" placeholder="Введите описание"></textarea>
+            </div>
+            <div class="form-group">
+                <label>Варианты ответов</label>
+                <div id="optionsContainer">
+                    <div class="option-row">
+                        <input type="text" class="option-input" placeholder="Вариант 1">
+                        <button class="remove-option" onclick="removeOption(this)">×</button>
+                    </div>
+                    <div class="option-row">
+                        <input type="text" class="option-input" placeholder="Вариант 2">
+                        <button class="remove-option" onclick="removeOption(this)">×</button>
+                    </div>
+                </div>
+                <button class="add-option-btn" onclick="addOption()">+ Добавить вариант</button>
+            </div>
+            <button class="submit-btn" onclick="createPoll()">Создать голосование</button>
+        </div>
+
+        <div class="polls-title-block">
+            <h2 class="my-polls-title">📊 Все голосования и заявки</h2>
+        </div>
+
+        <div id="pollsContainer" class="polls-list">
+            <div class="loading">Загрузка голосований...</div>
+        </div>
+    </div>
+
+    <div id="tab-incidents" class="tab-content">
+        <div class="section-card">
+            <h2>Инциденты антифрода</h2>
+            <div id="incidentsContainer" class="item-list">
+                <div class="loading">Загрузка инцидентов...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-rules" class="tab-content">
+        <div class="section-card">
+            <h2>Конструктор правил</h2>
+
+            <div class="rule-form">
+                <input type="text" id="ruleName" placeholder="Название правила">
+
+                <select id="ruleType" onchange="onRuleTypeChange()">
+                    <option value="country_block">Блокировка по стране</option>
+                    <option value="country_allow_only">Разрешить только страну</option>
+                    <option value="os_block">Блокировка по ОС</option>
+                    <option value="empty_user_agent_block">Пустой User-Agent</option>
+                    <option value="user_agent_contains_block">Блокировка по подстроке в User-Agent</option>
+                    <option value="ip_attempt_limit">Лимит подозрительных попыток с IP</option>
+                    <option value="time_block">Запрет голосования по времени</option>
+                </select>
+
+                <input type="text" id="ruleTargetValue" placeholder="Значение правила">
+
+                <select id="ruleOsValue" style="display:none;">
+                    <option value="">Выберите ОС</option>
+                    <option value="Windows">Windows</option>
+                    <option value="Linux">Linux</option>
+                    <option value="Android">Android</option>
+                    <option value="iOS">iOS</option>
+                    <option value="macOS">macOS</option>
+                    <option value="Unknown">Unknown</option>
+                </select>
+
+                <input type="number" id="ruleThreshold" placeholder="Порог" min="1">
+                <input type="number" id="ruleWindowMinutes" placeholder="Интервал, мин" min="1">
+                <input type="number" id="rulePollId" placeholder="ID опроса (необязательно)" min="1">
+
+                <select id="ruleAction">
+                    <option value="block">Блокировать</option>
+                </select>
+            </div>
+
+            <p class="muted" id="ruleHint" style="margin-bottom: 12px;">
+                Пример: KZ — блокировать голоса из Казахстана.
+            </p>
+
+            <button class="submit-btn" onclick="createRule()">Создать правило</button>
+        </div>
+
+        <div class="section-card">
+            <h2>Список правил</h2>
+            <div id="rulesContainer" class="item-list">
+                <div class="loading">Загрузка правил...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-analytics" class="tab-content">
+        <div class="section-card">
+            <h2>Аналитика</h2>
+            <div id="analyticsContainer">
+                <div class="loading">Загрузка аналитики...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="tab-logs" class="tab-content">
+        <div class="section-card">
+            <h2>Логи системы</h2>
+            <div id="logsContainer" class="item-list">
+                <div class="loading">Загрузка логов...</div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="resultsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <h2 id="modalPollTitle" style="margin-bottom: 1rem;"></h2>
+        <div id="modalResults"></div>
+    </div>
+</div>
+
+<script>
+    let currentUser = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        checkAuth();
+    });
+
+    function checkAuth() {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        currentUser = JSON.parse(user);
+        if (currentUser.role !== 'admin') {
+            window.location.href = '/user.html';
+            return;
+        }
+
+        document.getElementById('username').textContent = currentUser.username;
+
+        loadDashboard();
+        loadAdminPolls();
+        loadIncidents();
+        loadRules();
+        loadAnalytics();
+        loadLogs();
+        onRuleTypeChange();
+    }
+
+    function switchTab(tabName, btn) {
+        document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+        document.querySelectorAll('.tab-btn').forEach(tab => tab.classList.remove('active'));
+
+        document.getElementById('tab-' + tabName).classList.add('active');
+        btn.classList.add('active');
+    }
+
+    function loadDashboard() {
+        fetch('/api/admin/dashboard')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    showMessage(data.message || 'Ошибка загрузки обзора', 'error');
+                    return;
+                }
+
+                const s = data.data;
+                document.getElementById('dashboardStats').innerHTML = `
+                    <div class="stat-card">
+                        <div class="stat-title">Всего голосований</div>
+                        <div class="stat-value-big">${s.totalPolls}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Активных голосований</div>
+                        <div class="stat-value-big">${s.activePolls}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">На одобрении</div>
+                        <div class="stat-value-big">${s.pendingPolls || 0}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Всего голосов</div>
+                        <div class="stat-value-big">${s.totalVotes}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Инцидентов</div>
+                        <div class="stat-value-big">${s.totalIncidents}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Активных правил</div>
+                        <div class="stat-value-big">${s.activeRules}</div>
+                    </div>
+                `;
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка загрузки обзора', 'error');
+            });
+    }
+
+    function addOption() {
+        const container = document.getElementById('optionsContainer');
+        const optionRow = document.createElement('div');
+        optionRow.className = 'option-row';
+        optionRow.innerHTML = `
+            <input type="text" class="option-input" placeholder="Вариант ${container.children.length + 1}">
+            <button class="remove-option" onclick="removeOption(this)">×</button>
+        `;
+        container.appendChild(optionRow);
+    }
+
+    function removeOption(btn) {
+        const container = document.getElementById('optionsContainer');
+        if (container.children.length > 2) {
+            btn.parentElement.remove();
+        } else {
+            showMessage('Должно быть минимум 2 варианта', 'error');
+        }
+    }
+
+    function createPoll() {
+        const title = document.getElementById('pollTitle').value.trim();
+        const description = document.getElementById('pollDescription').value.trim();
+        const optionInputs = document.querySelectorAll('.option-input');
+
+        const options = [];
+        optionInputs.forEach(input => {
+            if (input.value.trim()) {
+                options.push(input.value.trim());
+            }
+        });
+
+        if (!title) {
+            showMessage('Введите название голосования', 'error');
+            return;
+        }
+
+        if (options.length < 2) {
+            showMessage('Добавьте минимум 2 варианта ответа', 'error');
+            return;
+        }
+
+        fetch('/api/admin/polls', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                title,
+                description,
+                options
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Голосование успешно создано', 'success');
+                    document.getElementById('pollTitle').value = '';
+                    document.getElementById('pollDescription').value = '';
+                    document.getElementById('optionsContainer').innerHTML = `
+                        <div class="option-row">
+                            <input type="text" class="option-input" placeholder="Вариант 1">
+                            <button class="remove-option" onclick="removeOption(this)">×</button>
+                        </div>
+                        <div class="option-row">
+                            <input type="text" class="option-input" placeholder="Вариант 2">
+                            <button class="remove-option" onclick="removeOption(this)">×</button>
+                        </div>
+                    `;
+                    loadAdminPolls();
+                    loadDashboard();
+                    loadLogs();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка создания голосования', 'error');
+            });
+    }
+
+    function loadAdminPolls() {
+        fetch('/api/admin/polls')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderAdminPolls(data.data);
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка загрузки голосований', 'error');
+            });
+    }
+
+    function renderAdminPolls(polls) {
+        const container = document.getElementById('pollsContainer');
+
+        if (!polls || polls.length === 0) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📭</div><p>Нет созданных голосований</p></div>';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        polls.forEach(poll => {
+            const pollCard = document.createElement('div');
+            pollCard.className = 'poll-card';
+
+            let statusBadge = '<span class="badge blue">Одобрено</span>';
+            if (poll.status === 'pending') statusBadge = '<span class="badge yellow">На одобрении</span>';
+            if (poll.status === 'rejected') statusBadge = '<span class="badge red">Отклонено</span>';
+            if (poll.status === 'approved' && poll.active) statusBadge = '<span class="badge green">Активно</span>';
+
+            let optionsHtml = '';
+            (poll.options || []).forEach(opt => {
+                optionsHtml += `<div class="option-item">✓ ${escapeHtml(opt.text)}</div>`;
+            });
+
+            let actionsHtml = `
+                <button class="action-btn results" onclick="showResults(${poll.id}, '${escapeHtml(poll.title)}')">Результаты</button>
+                <button class="action-btn delete" onclick="deletePoll(${poll.id})">Удалить</button>
+            `;
+
+            if (poll.status === 'pending') {
+                actionsHtml = `
+                    <textarea id="comment-${poll.id}" class="admin-comment" placeholder="Комментарий администратора (необязательно)"></textarea>
+                    <div>
+                        <button class="small-btn success" onclick="approvePoll(${poll.id})">Одобрить</button>
+                        <button class="small-btn danger" onclick="rejectPoll(${poll.id})">Отклонить</button>
+                        <button class="action-btn results" onclick="showResults(${poll.id}, '${escapeHtml(poll.title)}')">Результаты</button>
+                    </div>
+                `;
+            } else if (poll.status === 'approved') {
+                actionsHtml = `
+                    ${!poll.active
+                    ? `<button class="action-btn activate" onclick="activatePoll(${poll.id})">Активировать</button>`
+                    : `<button class="action-btn deactivate" onclick="deactivatePoll(${poll.id})">Деактивировать</button>`
+                }
+                    <button class="action-btn results" onclick="showResults(${poll.id}, '${escapeHtml(poll.title)}')">Результаты</button>
+                    <button class="action-btn delete" onclick="deletePoll(${poll.id})">Удалить</button>
+                `;
+            }
+
+            pollCard.innerHTML = `
+                <div class="poll-header">
+                    <h3 class="poll-title">${escapeHtml(poll.title)}</h3>
+                    <p class="poll-description">${escapeHtml(poll.description) || 'Нет описания'}</p>
+                    <div class="poll-meta">
+                        ${statusBadge}
+                        <span class="poll-date">📅 ${new Date(poll.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </div>
+
+                <div class="author-box">
+                    <div><strong>Автор:</strong> ${escapeHtml(poll.author?.username || 'Неизвестно')}</div>
+                    <div class="muted">ID пользователя: ${poll.author?.id || '-'}</div>
+                    <div class="muted">Роль: ${escapeHtml(poll.author?.role || '-')}</div>
+                </div>
+
+                ${poll.adminComment ? `<div class="muted" style="margin-top: 12px;"><strong>Комментарий администратора:</strong> ${escapeHtml(poll.adminComment)}</div>` : ''}
+
+                <div class="options-list" style="margin-top: 12px;">${optionsHtml}</div>
+
+                <div class="poll-stats">
+                    <div class="stat-item">
+                        <div class="stat-value">${poll.totalVotes || 0}</div>
+                        <div class="stat-label">голосов</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value">${(poll.options || []).length}</div>
+                        <div class="stat-label">вариантов</div>
+                    </div>
+                </div>
+
+                <div class="poll-actions moderation-box">
+                    ${actionsHtml}
+                </div>
+            `;
+
+            container.appendChild(pollCard);
+        });
+    }
+
+    function approvePoll(pollId) {
+        const adminComment = document.getElementById(`comment-${pollId}`)?.value || '';
+
+        fetch(`/api/admin/polls/${pollId}/approve`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ adminComment })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    refreshAdminData();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка одобрения', 'error');
+            });
+    }
+
+    function rejectPoll(pollId) {
+        const adminComment = document.getElementById(`comment-${pollId}`)?.value || '';
+
+        fetch(`/api/admin/polls/${pollId}/reject`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({ adminComment })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    refreshAdminData();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка отклонения', 'error');
+            });
+    }
+
+    function activatePoll(pollId) {
+        if (!confirm('Активировать это голосование? Пользователи смогут голосовать.')) return;
+        updatePollStatus(pollId, 'activate');
+    }
+
+    function deactivatePoll(pollId) {
+        if (!confirm('Деактивировать это голосование? Пользователи не смогут голосовать.')) return;
+        updatePollStatus(pollId, 'deactivate');
+    }
+
+    function deletePoll(pollId) {
+        if (!confirm('Вы уверены, что хотите удалить это голосование? Это действие нельзя отменить.')) return;
+
+        fetch(`/api/admin/polls/${pollId}/delete`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Голосование успешно удалено', 'success');
+                    refreshAdminData();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка при удалении', 'error');
+            });
+    }
+
+    function updatePollStatus(pollId, action) {
+        fetch(`/api/admin/polls/${pollId}/${action}`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    refreshAdminData();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка обновления статуса', 'error');
+            });
+    }
+
+    function refreshAdminData() {
+        loadAdminPolls();
+        loadDashboard();
+        loadLogs();
+        loadAnalytics();
+    }
+
+    function showResults(pollId, pollTitle) {
+        document.getElementById('modalPollTitle').textContent = pollTitle;
+        document.getElementById('modalResults').innerHTML = '<div class="loading">Загрузка...</div>';
+        document.getElementById('resultsModal').style.display = 'block';
+
+        fetch(`/api/polls/${pollId}/results`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderModalResults(data.data);
+                } else {
+                    showMessage(data.message, 'error');
+                    document.getElementById('resultsModal').style.display = 'none';
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка загрузки результатов', 'error');
+                document.getElementById('resultsModal').style.display = 'none';
+            });
+    }
+
+    function renderModalResults(data) {
+        const container = document.getElementById('modalResults');
+
+        let html = `
+            <div class="results-details">
+                <div class="total-votes">
+                    Всего проголосовало: <strong>${data.totalVotes}</strong> ${getWordForm(data.totalVotes, 'человек', 'человека', 'человек')}
+                </div>
+            </div>
+        `;
+
+        data.options.forEach(option => {
+            const percentage = option.percentage || 0;
+            const votes = option.votes || 0;
+
+            html += `
+                <div class="result-item">
+                    <div class="result-header">
+                        <span>${escapeHtml(option.text)}</span>
+                        <span>${votes} ${getWordForm(votes, 'голос', 'голоса', 'голосов')}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%">
+                            ${percentage > 0 ? percentage + '%' : '0%'}
+                        </div>
+                    </div>
+                    <div class="progress-stats">
+                        <span>${percentage}% от всех голосов</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function loadIncidents() {
+        fetch('/api/admin/incidents')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('incidentsContainer');
+
+                if (!data.success) {
+                    container.innerHTML = '<div class="muted">Не удалось загрузить инциденты</div>';
+                    return;
+                }
+
+                if (!data.data || data.data.length === 0) {
+                    container.innerHTML = '<div class="muted">Инцидентов пока нет</div>';
+                    return;
+                }
+
+                container.innerHTML = data.data.map(item => `
+                    <div class="item-card">
+                        <h4>${escapeHtml(item.reason)}</h4>
+                        <div class="muted">Опрос: ${escapeHtml(item.pollTitle || 'Без названия')}</div>
+                        <div class="muted">Страна: ${escapeHtml(item.countryName || '-')} (${escapeHtml(item.countryCode || '-')})</div>
+                        <div class="muted">IP: ${escapeHtml(item.ip || '-')}</div>
+                        <div class="muted">Fingerprint: ${escapeHtml(item.fingerprint || '-')}</div>
+                        <div class="muted">Дата: ${escapeHtml(item.createdAt)}</div>
+                    </div>
+                `).join('');
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка загрузки инцидентов', 'error');
+            });
+    }
+
+    function onRuleTypeChange() {
+        const ruleType = document.getElementById('ruleType').value;
+        const target = document.getElementById('ruleTargetValue');
+        const osSelect = document.getElementById('ruleOsValue');
+        const threshold = document.getElementById('ruleThreshold');
+        const windowMinutes = document.getElementById('ruleWindowMinutes');
+        const hint = document.getElementById('ruleHint');
+
+        target.style.display = 'block';
+        osSelect.style.display = 'none';
+        threshold.style.display = 'block';
+        windowMinutes.style.display = 'block';
+
+        target.value = '';
+        osSelect.value = '';
+        threshold.value = '';
+        windowMinutes.value = '';
+
+        if (ruleType === 'country_block') {
+            target.placeholder = 'Код страны, например KZ';
+            hint.textContent = 'Пример: KZ — блокировать голоса из Казахстана.';
+            threshold.style.display = 'none';
+            windowMinutes.style.display = 'none';
+        } else if (ruleType === 'country_allow_only') {
+            target.placeholder = 'Код страны, например RU';
+            hint.textContent = 'Пример: RU — разрешить только Россию.';
+            threshold.style.display = 'none';
+            windowMinutes.style.display = 'none';
+        } else if (ruleType === 'os_block') {
+            target.style.display = 'none';
+            osSelect.style.display = 'block';
+            hint.textContent = 'Выберите ОС, которую нужно заблокировать.';
+            threshold.style.display = 'none';
+            windowMinutes.style.display = 'none';
+        } else if (ruleType === 'empty_user_agent_block') {
+            target.style.display = 'none';
+            threshold.style.display = 'none';
+            windowMinutes.style.display = 'none';
+            hint.textContent = 'Блокирует запросы с пустым User-Agent.';
+        } else if (ruleType === 'user_agent_contains_block') {
+            target.placeholder = 'Например curl, python, Go-http-client';
+            hint.textContent = 'Блокирует, если User-Agent содержит заданную подстроку.';
+            threshold.style.display = 'none';
+            windowMinutes.style.display = 'none';
+        } else if (ruleType === 'ip_attempt_limit') {
+            target.style.display = 'none';
+            threshold.placeholder = 'Например 3';
+            windowMinutes.placeholder = 'Например 10';
+            hint.textContent = 'Блокирует, если за интервал слишком много подозрительных попыток с одного fingerprint.';
+        } else if (ruleType === 'time_block') {
+            target.placeholder = 'Например 23:00-06:00';
+            hint.textContent = 'Запрещает голосование в указанный промежуток времени.';
+            threshold.style.display = 'none';
+            windowMinutes.style.display = 'none';
+        }
+    }
+
+    function createRule() {
+        const name = document.getElementById('ruleName').value.trim();
+        const ruleType = document.getElementById('ruleType').value;
+        const targetValueInput = document.getElementById('ruleTargetValue').value.trim();
+        const osValue = document.getElementById('ruleOsValue').value;
+        const threshold = parseInt(document.getElementById('ruleThreshold').value || '0', 10);
+        const windowMinutes = parseInt(document.getElementById('ruleWindowMinutes').value || '0', 10);
+        const pollId = parseInt(document.getElementById('rulePollId').value || '0', 10);
+        const action = document.getElementById('ruleAction').value;
+
+        let targetValue = targetValueInput;
+        if (ruleType === 'os_block') {
+            targetValue = osValue;
+        }
+
+        if (!name) {
+            showMessage('Введите название правила', 'error');
+            return;
+        }
+
+        if ((ruleType === 'country_block' || ruleType === 'country_allow_only' || ruleType === 'user_agent_contains_block' || ruleType === 'time_block') && !targetValue) {
+            showMessage('Заполните значение правила', 'error');
+            return;
+        }
+
+        if (ruleType === 'os_block' && !targetValue) {
+            showMessage('Выберите ОС', 'error');
+            return;
+        }
+
+        if (ruleType === 'ip_attempt_limit' && (!threshold || !windowMinutes)) {
+            showMessage('Укажите порог и интервал', 'error');
+            return;
+        }
+
+        fetch('/api/admin/rules', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                name,
+                ruleType,
+                targetValue,
+                threshold,
+                windowMinutes,
+                pollId,
+                action
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    document.getElementById('ruleName').value = '';
+                    document.getElementById('ruleTargetValue').value = '';
+                    document.getElementById('ruleOsValue').value = '';
+                    document.getElementById('ruleThreshold').value = '';
+                    document.getElementById('ruleWindowMinutes').value = '';
+                    document.getElementById('rulePollId').value = '';
+                    loadRules();
+                    loadDashboard();
+                    loadLogs();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка создания правила', 'error');
+            });
+    }
+
+    function loadRules() {
+        fetch('/api/admin/rules')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('rulesContainer');
+
+                if (!data.success) {
+                    container.innerHTML = '<div class="muted">Не удалось загрузить правила</div>';
+                    return;
+                }
+
+                if (!data.data || data.data.length === 0) {
+                    container.innerHTML = '<div class="muted">Правил пока нет</div>';
+                    return;
+                }
+
+                container.innerHTML = data.data.map(rule => `
+                    <div class="item-card">
+                        <h4>${escapeHtml(rule.name)}</h4>
+                        <div class="muted">Тип: ${escapeHtml(rule.ruleType)}</div>
+                        <div class="muted">Значение: ${escapeHtml(rule.targetValue || '-')}</div>
+                        <div class="muted">Порог: ${rule.threshold || 0}</div>
+                        <div class="muted">Интервал: ${rule.windowMinutes || 0} мин</div>
+                        <div class="muted">ID опроса: ${rule.pollId || '-'}</div>
+                        <div class="muted">Действие: ${escapeHtml(rule.action)}</div>
+                        <div style="margin: 10px 0;">
+                            ${
+                    rule.active
+                        ? '<span class="badge green">Активно</span>'
+                        : '<span class="badge red">Отключено</span>'
+                }
+                        </div>
+                        <button class="small-btn secondary" onclick="toggleRule(${rule.id})">
+                            ${rule.active ? 'Отключить' : 'Включить'}
+                        </button>
+                        <button class="small-btn danger" onclick="deleteRule(${rule.id})">Удалить</button>
+                    </div>
+                `).join('');
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка загрузки правил', 'error');
+            });
+    }
+
+    function toggleRule(ruleId) {
+        fetch(`/api/admin/rules/${ruleId}/toggle`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    loadRules();
+                    loadDashboard();
+                    loadLogs();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка обновления правила', 'error');
+            });
+    }
+
+    function deleteRule(ruleId) {
+        if (!confirm('Удалить это правило?')) return;
+
+        fetch(`/api/admin/rules/${ruleId}/delete`, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    loadRules();
+                    loadDashboard();
+                    loadLogs();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка удаления правила', 'error');
+            });
+    }
+
+    function loadAnalytics() {
+        Promise.all([
+            fetch('/api/admin/analytics').then(r => r.json()),
+            fetch('/api/admin/fraud-info').then(r => r.json())
+        ])
+            .then(([analyticsData, votesData]) => {
+                const container = document.getElementById('analyticsContainer');
+
+                if (!analyticsData.success) {
+                    container.innerHTML = '<div class="muted">Не удалось загрузить аналитику</div>';
+                    return;
+                }
+
+                const topPolls = (analyticsData.data.topPolls || []).map(item => `
+                <tr>
+                    <td>${escapeHtml(item.title)}</td>
+                    <td>${item.voteCount}</td>
+                </tr>
+            `).join('');
+
+                const votersRows = (votesData.success && votesData.data ? votesData.data : []).map(item => `
+                <tr>
+                    <td>${escapeHtml(item.voter_name || '-')}</td>
+                    <td>${escapeHtml(item.poll_title || '-')}</td>
+                    <td>${escapeHtml(item.option_text || '-')}</td>
+                    <td>${escapeHtml(item.ip || '-')}</td>
+                    <td>${escapeHtml(item.country_name || '-')}</td>
+                    <td>${escapeHtml(item.country_code || '-')}</td>
+                    <td>${escapeHtml(item.os || '-')}</td>
+                    <td>${new Date(item.voted_at).toLocaleString()}</td>
+                </tr>
+            `).join('');
+
+                container.innerHTML = `
+                <div class="dashboard-grid">
+                    <div class="stat-card">
+                        <div class="stat-title">Всего голосов</div>
+                        <div class="stat-value-big">${analyticsData.data.totalVotes}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Заблокированных попыток</div>
+                        <div class="stat-value-big">${analyticsData.data.blockedVotes}</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-title">Опросов с голосами</div>
+                        <div class="stat-value-big">${analyticsData.data.uniquePolls}</div>
+                    </div>
+                </div>
+
+                <div class="section-card" style="box-shadow:none; padding:0; margin: 0 0 24px 0;">
+                    <h3>Топ голосований</h3>
+                    <table class="simple-table">
+                        <thead>
+                            <tr>
+                                <th>Название</th>
+                                <th>Голосов</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${topPolls || '<tr><td colspan="2">Нет данных</td></tr>'}
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="section-card" style="box-shadow:none; padding:0; margin: 0;">
+                    <h3>Все проголосовавшие</h3>
+                    <div style="overflow-x:auto;">
+                        <table class="simple-table">
+                            <thead>
+                                <tr>
+                                    <th>Пользователь</th>
+                                    <th>Опрос</th>
+                                    <th>Выбор</th>
+                                    <th>IP</th>
+                                    <th>Страна</th>
+                                    <th>Код</th>
+                                    <th>ОС</th>
+                                    <th>Дата</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                ${votersRows || '<tr><td colspan="8">Нет голосов</td></tr>'}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            `;
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка загрузки аналитики', 'error');
+            });
+    }
+
+    function loadLogs() {
+        fetch('/api/admin/logs')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('logsContainer');
+
+                if (!data.success) {
+                    container.innerHTML = '<div class="muted">Не удалось загрузить логи</div>';
+                    return;
+                }
+
+                if (!data.data || data.data.length === 0) {
+                    container.innerHTML = '<div class="muted">Логов пока нет</div>';
+                    return;
+                }
+
+                container.innerHTML = data.data.map(item => `
+                    <div class="item-card">
+                        <div style="margin-bottom: 8px;">
+                            ${
+                    item.level === 'warning'
+                        ? '<span class="badge yellow">warning</span>'
+                        : '<span class="badge green">info</span>'
+                }
+                        </div>
+                        <h4>${escapeHtml(item.message)}</h4>
+                        <div class="muted">${escapeHtml(item.createdAt)}</div>
+                    </div>
+                `).join('');
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка загрузки логов', 'error');
+            });
+    }
+
+    function escapeHtml(text) {
+        if (!text) return text;
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function getWordForm(number, form1, form2, form5) {
+        number = Math.abs(number) % 100;
+        if (number >= 11 && number <= 19) return form5;
+
+        number = number % 10;
+        if (number === 1) return form1;
+        if (number >= 2 && number <= 4) return form2;
+        return form5;
+    }
+
+    function closeModal() {
+        document.getElementById('resultsModal').style.display = 'none';
+    }
+
+    function logout() {
+        fetch('/api/logout', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        }).then(() => {
+            localStorage.removeItem('user');
+            window.location.href = '/login.html';
+        });
+    }
+
+    function showMessage(text, type) {
+        const oldMessage = document.querySelector('.message');
+        if (oldMessage) oldMessage.remove();
+
+        const message = document.createElement('div');
+        message.className = `message ${type}`;
+        message.textContent = text;
+        document.body.appendChild(message);
+
+        setTimeout(() => {
+            message.style.animation = 'slideIn 0.3s reverse';
+            setTimeout(() => message.remove(), 300);
+        }, 3000);
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('resultsModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>

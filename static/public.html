@@ -1,0 +1,432 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Голосование - публичная страница</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="navbar">
+    <div class="logo">Публичное голосование</div>
+    <div class="user-info">
+        <a href="/login.html" class="nav-link">Вход / Регистрация</a>
+    </div>
+</div>
+
+<div class="public-container">
+    <div class="public-header">
+        <h1>Активные голосования</h1>
+        <p>Вы можете голосовать без регистрации</p>
+    </div>
+
+    <div id="activePolls" class="polls-grid">
+        <div class="loading">Загрузка активных голосований...</div>
+    </div>
+
+    <div class="public-header" style="margin-top: 3rem;">
+        <h2>Результаты одобренных голосований</h2>
+        <p>Статистика голосований</p>
+    </div>
+
+    <div id="allResults">
+        <div class="loading">Загрузка результатов...</div>
+    </div>
+
+    <div class="public-footer">
+        <p>Хотите сохранять историю своих голосов?</p>
+        <p style="margin-top: 0.5rem; color: #94a3b8;">
+            <a href="/login.html" style="color: #2563eb; text-decoration: none;">Зарегистрируйтесь</a>
+            чтобы видеть историю своих голосований
+        </p>
+    </div>
+</div>
+
+<div id="voteModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeVoteModal()">&times;</span>
+        <h2 id="modalPollTitle" style="margin-bottom: 1rem;"></h2>
+        <p id="modalPollDescription" style="color: #64748b; margin-bottom: 1.5rem;"></p>
+
+        <div id="modalOptions" class="options-list" style="margin-bottom: 1.5rem;"></div>
+
+        <div style="display: flex; gap: 1rem; justify-content: flex-end;">
+            <button class="vote-btn" onclick="submitVote()" style="background: #10b981;">Проголосовать</button>
+            <button class="vote-btn" onclick="closeVoteModal()" style="background: #94a3b8;">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<div id="resultsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeResultsModal()">&times;</span>
+        <h2 id="resultsModalTitle" style="margin-bottom: 1rem;"></h2>
+        <div id="modalResults"></div>
+    </div>
+</div>
+
+<script>
+    let currentPollId = null;
+    let selectedOptionId = null;
+
+    document.addEventListener('DOMContentLoaded', function() {
+        loadActivePolls();
+        loadAllResults();
+    });
+
+    function loadActivePolls() {
+        const container = document.getElementById('activePolls');
+
+        fetch('/api/polls/active')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    if (data.data && data.data.length > 0) {
+                        renderActivePolls(data.data);
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">🌙</div>
+                                <p>Нет активных голосований</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">❌</div>
+                            <p>Ошибка загрузки: ${data.message}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <p>Не удалось загрузить активные голосования</p>
+                    </div>
+                `;
+            });
+    }
+
+    function renderActivePolls(polls) {
+        const container = document.getElementById('activePolls');
+        container.innerHTML = '';
+
+        polls.forEach(poll => {
+            const pollCard = document.createElement('div');
+            pollCard.className = 'poll-card';
+            pollCard.innerHTML = `
+                <div class="poll-header">
+                    <h3 class="poll-title">${escapeHtml(poll.title)}</h3>
+                    <p class="poll-description">${escapeHtml(poll.description) || 'Нет описания'}</p>
+                    <div class="poll-meta">
+                        <span class="status-badge active">Активно</span>
+                        <span class="poll-creator">👤 ${escapeHtml(poll.creator) || 'Админ'}</span>
+                        <span class="poll-date">📅 ${new Date(poll.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="poll-actions">
+                    <button class="action-btn vote" onclick="openVoteModal(${poll.id}, '${escapeHtml(poll.title)}', '${escapeHtml(poll.description || '')}')">
+                        Голосовать
+                    </button>
+                    <button class="action-btn results" onclick="showPollResults(${poll.id}, '${escapeHtml(poll.title)}')">
+                        Результаты
+                    </button>
+                </div>
+            `;
+            container.appendChild(pollCard);
+        });
+    }
+
+    function loadAllResults() {
+        const container = document.getElementById('allResults');
+
+        fetch('/api/polls')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    let approvedPolls = (data.data || []).filter(poll => poll.status !== 'rejected' && poll.status !== 'pending');
+
+                    if (approvedPolls.length > 0) {
+                        renderAllResults(approvedPolls);
+                    } else {
+                        container.innerHTML = `
+                            <div class="empty-state">
+                                <div class="empty-state-icon">📭</div>
+                                <p>Нет доступных результатов</p>
+                            </div>
+                        `;
+                    }
+                } else {
+                    container.innerHTML = `
+                        <div class="empty-state">
+                            <div class="empty-state-icon">❌</div>
+                            <p>Ошибка загрузки: ${data.message}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="empty-state-icon">❌</div>
+                        <p>Не удалось загрузить результаты</p>
+                    </div>
+                `;
+            });
+    }
+
+    function renderAllResults(polls) {
+        const container = document.getElementById('allResults');
+        container.innerHTML = '';
+
+        polls.forEach(poll => {
+            const pollDiv = document.createElement('div');
+            pollDiv.className = 'public-poll-card';
+            pollDiv.innerHTML = `
+                <h2>${escapeHtml(poll.title)}</h2>
+                <p class="description">${escapeHtml(poll.description) || 'Нет описания'}</p>
+                <div class="poll-meta">
+                    <span class="status-badge ${poll.active ? 'active' : 'inactive'}">
+                        ${poll.active ? 'Активно' : 'Завершено'}
+                    </span>
+                    <span class="poll-creator">👤 ${escapeHtml(poll.creator) || 'Админ'}</span>
+                    <span class="poll-date">📅 ${formatDate(poll.createdAt)}</span>
+                </div>
+                <div id="results-${poll.id}" class="results-container">
+                    <div class="loading">Загрузка результатов...</div>
+                </div>
+            `;
+            container.appendChild(pollDiv);
+
+            loadPollResults(poll.id, `results-${poll.id}`);
+        });
+    }
+
+    function loadPollResults(pollId, containerId) {
+        fetch(`/api/polls/${pollId}/results`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderPollResults(containerId, data.data);
+                }
+            })
+            .catch(error => console.error('Error loading results:', error));
+    }
+
+    function renderPollResults(containerId, data) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        if (!data.options || data.options.length === 0) {
+            container.innerHTML = '<p style="color: #64748b; text-align: center; padding: 2rem;">Нет данных о голосах</p>';
+            return;
+        }
+
+        let html = `
+            <div class="results-details">
+                <div class="total-votes">
+                    Всего проголосовало: <strong>${data.totalVotes}</strong> ${getWordForm(data.totalVotes, 'человек', 'человека', 'человек')}
+                </div>
+            </div>
+        `;
+
+        data.options.forEach(option => {
+            const percentage = option.percentage || 0;
+            const votes = option.votes || 0;
+
+            html += `
+                <div class="result-item">
+                    <div class="result-header">
+                        <span>${escapeHtml(option.text)}</span>
+                        <span>${votes} ${getWordForm(votes, 'голос', 'голоса', 'голосов')}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%">
+                            ${percentage > 0 ? percentage + '%' : '0%'}
+                        </div>
+                    </div>
+                    <div class="progress-stats">
+                        <span>${percentage}% от всех голосов</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function openVoteModal(pollId, title, description) {
+        currentPollId = pollId;
+        selectedOptionId = null;
+
+        document.getElementById('modalPollTitle').textContent = title;
+        document.getElementById('modalPollDescription').textContent = description;
+
+        fetch(`/api/polls/${pollId}/results`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const optionsHtml = data.data.options.map(option => `
+                        <label class="option-label" style="display: block; margin-bottom: 0.5rem; padding: 0.5rem; border: 1px solid #e2e8f0; border-radius: 0.5rem; cursor: pointer;">
+                            <input type="radio" name="voteOption" value="${option.id}" style="margin-right: 0.5rem;">
+                            <span>${escapeHtml(option.text)}</span>
+                        </label>
+                    `).join('');
+
+                    document.getElementById('modalOptions').innerHTML = optionsHtml;
+
+                    document.querySelectorAll('input[name="voteOption"]').forEach(radio => {
+                        radio.addEventListener('change', (e) => {
+                            selectedOptionId = parseInt(e.target.value);
+                        });
+                    });
+                }
+            })
+            .catch(error => {
+                console.error('Error loading options:', error);
+                showMessage('Ошибка загрузки вариантов голосования', 'error');
+            });
+
+        document.getElementById('voteModal').style.display = 'block';
+    }
+
+    function closeVoteModal() {
+        document.getElementById('voteModal').style.display = 'none';
+        currentPollId = null;
+        selectedOptionId = null;
+    }
+
+    function submitVote() {
+        if (!selectedOptionId) {
+            showMessage('Выберите вариант ответа', 'error');
+            return;
+        }
+
+        if (!currentPollId) {
+            showMessage('Ошибка: не выбран опрос', 'error');
+            return;
+        }
+
+        if (!confirm('Подтвердите ваш выбор')) {
+            return;
+        }
+
+        fetch('/api/vote', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                pollId: currentPollId,
+                optionId: selectedOptionId
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Спасибо! Ваш голос учтен', 'success');
+                    closeVoteModal();
+                    loadAllResults();
+                    loadActivePolls();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка при голосовании', 'error');
+            });
+    }
+
+    function showPollResults(pollId, title) {
+        document.getElementById('resultsModalTitle').textContent = title;
+        document.getElementById('modalResults').innerHTML = '<div class="loading">Загрузка...</div>';
+        document.getElementById('resultsModal').style.display = 'block';
+
+        fetch(`/api/polls/${pollId}/results`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderPollResults('modalResults', data.data);
+                } else {
+                    document.getElementById('modalResults').innerHTML = `
+                        <div class="empty-state">
+                            <p>${data.message}</p>
+                        </div>
+                    `;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                document.getElementById('modalResults').innerHTML = `
+                    <div class="empty-state">
+                        <p>Ошибка загрузки результатов</p>
+                    </div>
+                `;
+            });
+    }
+
+    function closeResultsModal() {
+        document.getElementById('resultsModal').style.display = 'none';
+    }
+
+    function escapeHtml(text) {
+        if (!text) return text;
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function formatDate(dateString) {
+        const date = new Date(dateString);
+        return date.toLocaleDateString('ru-RU', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        });
+    }
+
+    function getWordForm(number, form1, form2, form5) {
+        number = Math.abs(number) % 100;
+        if (number >= 11 && number <= 19) return form5;
+
+        number = number % 10;
+        if (number === 1) return form1;
+        if (number >= 2 && number <= 4) return form2;
+        return form5;
+    }
+
+    function showMessage(text, type) {
+        const oldMessage = document.querySelector('.message');
+        if (oldMessage) oldMessage.remove();
+
+        const message = document.createElement('div');
+        message.className = `message ${type}`;
+        message.textContent = text;
+        document.body.appendChild(message);
+
+        setTimeout(() => {
+            message.style.animation = 'slideIn 0.3s reverse';
+            setTimeout(() => message.remove(), 300);
+        }, 3000);
+    }
+
+    window.onclick = function(event) {
+        const voteModal = document.getElementById('voteModal');
+        const resultsModal = document.getElementById('resultsModal');
+
+        if (event.target == voteModal) {
+            voteModal.style.display = 'none';
+        }
+        if (event.target == resultsModal) {
+            resultsModal.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>

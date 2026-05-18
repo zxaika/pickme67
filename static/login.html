@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вход / Регистрация</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+<div class="navbar">
+    <div class="logo">🗳️ Голосование</div>
+    <div class="user-info">
+        <a href="/public.html" style="color: #2563eb; text-decoration: none; margin-right: 1rem;">Публичные результаты</a>
+    </div>
+</div>
+
+<div class="auth-container">
+    <div class="logo">
+        <h1>Голосование</h1>
+        <p>Войдите <br> или <br> зарегистрируйтесь</p>
+    </div>
+
+    <div class="auth-tabs">
+        <button class="auth-tab active" onclick="switchTab('login')">Вход</button>
+        <button class="auth-tab" onclick="switchTab('register')">Регистрация</button>
+    </div>
+
+    <div id="loginForm" class="auth-form">
+        <div class="form-group">
+            <label>Имя пользователя</label>
+            <input type="text" id="loginUsername" placeholder="Введите имя">
+        </div>
+        <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" id="loginPassword" placeholder="Введите пароль">
+        </div>
+        <button class="auth-btn" onclick="login()">Войти</button>
+    </div>
+
+    <div id="registerForm" class="auth-form hidden">
+        <div class="form-group">
+            <label>Имя пользователя</label>
+            <input type="text" id="registerUsername" placeholder="Минимум 3 символа">
+        </div>
+        <div class="form-group">
+            <label>Пароль</label>
+            <input type="password" id="registerPassword" placeholder="Минимум 6 символов">
+        </div>
+        <div class="form-group">
+            <label>Подтвердите пароль</label>
+            <input type="password" id="confirmPassword" placeholder="Повторите пароль">
+        </div>
+        <button class="auth-btn" onclick="register()">Зарегистрироваться</button>
+    </div>
+
+    <div id="message" class="message" style="display: none;"></div>
+</div>
+
+<script>
+    function switchTab(tab) {
+        const loginForm = document.getElementById('loginForm');
+        const registerForm = document.getElementById('registerForm');
+        const tabs = document.querySelectorAll('.auth-tab');
+
+        tabs.forEach(t => t.classList.remove('active'));
+
+        if (tab === 'login') {
+            tabs[0].classList.add('active');
+            loginForm.classList.remove('hidden');
+            registerForm.classList.add('hidden');
+        } else {
+            tabs[1].classList.add('active');
+            registerForm.classList.remove('hidden');
+            loginForm.classList.add('hidden');
+        }
+
+
+        document.getElementById('message').style.display = 'none';
+    }
+
+    function login() {
+        const username = document.getElementById('loginUsername').value;
+        const password = document.getElementById('loginPassword').value;
+        const messageDiv = document.getElementById('message');
+
+        if (!username || !password) {
+            showMessage('Заполните все поля', 'error');
+            return;
+        }
+
+        fetch('/api/login', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Успешный вход! Перенаправление...', 'success');
+
+                    localStorage.setItem('user', JSON.stringify(data.data));
+
+                    setTimeout(() => {
+                        if (data.data.role === 'admin') {
+                            window.location.href = '/admin.html';
+                        } else {
+                            window.location.href = '/user.html';
+                        }
+                    }, 1000);
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            });
+    }
+
+    function register() {
+        const username = document.getElementById('registerUsername').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('confirmPassword').value;
+        const messageDiv = document.getElementById('message');
+
+        if (!username || !password || !confirmPassword) {
+            showMessage('Заполните все поля', 'error');
+            return;
+        }
+
+        if (username.length < 3) {
+            showMessage('Имя пользователя должно содержать минимум 3 символа', 'error');
+            return;
+        }
+
+        if (password.length < 6) {
+            showMessage('Пароль должен содержать минимум 6 символов', 'error');
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showMessage('Пароли не совпадают', 'error');
+            return;
+        }
+
+        fetch('/api/register', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                username: username,
+                password: password
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Регистрация успешна! Теперь вы можете войти', 'success');
+
+                    // очищаем поля регистрации
+                    document.getElementById('registerUsername').value = '';
+                    document.getElementById('registerPassword').value = '';
+                    document.getElementById('confirmPassword').value = '';
+
+                    // переключаем на вкладку входа через 2 секунды
+                    setTimeout(() => {
+                        switchTab('login');
+                    }, 2000);
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка соединения с сервером', 'error');
+            });
+    }
+
+    function showMessage(text, type) {
+        const messageDiv = document.getElementById('message');
+        messageDiv.className = `message ${type}`;
+        messageDiv.style.display = 'block';
+        messageDiv.textContent = text;
+
+        setTimeout(() => {
+            messageDiv.style.display = 'none';
+        }, 3000);
+    }
+
+    // обрабатываем нажатие Enter
+    document.getElementById('loginPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            login();
+        }
+    });
+
+    document.getElementById('confirmPassword').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            register();
+        }
+    });
+
+    // проверяем авторизован ли уже пользователь
+    document.addEventListener('DOMContentLoaded', function() {
+        const user = localStorage.getItem('user');
+        if (user) {
+            const userData = JSON.parse(user);
+            if (userData.role === 'admin') {
+                window.location.href = '/admin.html';
+            } else {
+                window.location.href = '/user.html';
+            }
+        }
+    });
+</script>
+</body>
+</html>

@@ -1,0 +1,700 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Голосование</title>
+    <link rel="stylesheet" href="/css/style.css">
+    <style>
+        .status-pill {
+            display: inline-block;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 12px;
+            font-weight: 700;
+            margin-right: 8px;
+        }
+
+        .status-pending {
+            background: #fef3c7;
+            color: #92400e;
+        }
+
+        .status-approved {
+            background: #dbeafe;
+            color: #1d4ed8;
+        }
+
+        .status-rejected {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .status-active {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .status-inactive {
+            background: #e5e7eb;
+            color: #374151;
+        }
+
+        .user-polls-card {
+            background: white;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.06);
+            margin-bottom: 24px;
+        }
+
+        .user-poll-item {
+            border: 1px solid #e5e7eb;
+            border-radius: 12px;
+            padding: 14px;
+            margin-bottom: 12px;
+            background: #fafafa;
+        }
+    </style>
+</head>
+<body>
+<div class="navbar">
+    <div class="logo">Голосование</div>
+    <div class="user-info">
+        <a href="/public.html" style="color: #2563eb; text-decoration: none; margin-right: 1rem;">Публичные результаты</a>
+        <span class="username" id="username"></span>
+        <button class="logout-btn" onclick="logout()">Выйти</button>
+    </div>
+</div>
+
+<div class="container">
+    <div class="tabs">
+        <button class="tab active" onclick="showTab('active')">Активные</button>
+        <button class="tab" onclick="showTab('results')">Результаты</button>
+        <button class="tab" onclick="showTab('history')">Мои голоса</button>
+        <button class="tab" onclick="showTab('myPolls')">Мои голосования</button>
+        <button class="tab" onclick="showTab('createPoll')">Создать голосование</button>
+    </div>
+
+    <div id="activePolls" class="tab-content">
+        <div class="polls-grid" id="activePollsContainer">
+            <div class="loading">Загрузка активных голосований...</div>
+        </div>
+    </div>
+
+    <div id="resultsTab" class="tab-content" style="display: none;">
+        <div class="results-container" id="allResults">
+            <div class="loading">Загрузка результатов...</div>
+        </div>
+    </div>
+
+    <div id="historyTab" class="tab-content" style="display: none;">
+        <div class="results-container">
+            <h2>📋 Моя история голосований</h2>
+            <table class="history-table" id="historyTable">
+                <thead>
+                <tr>
+                    <th>Голосование</th>
+                    <th>Мой выбор</th>
+                    <th>Дата</th>
+                </tr>
+                </thead>
+                <tbody id="historyBody">
+                <tr>
+                    <td colspan="3" class="loading">Загрузка истории...</td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div id="myPollsTab" class="tab-content" style="display: none;">
+        <div class="user-polls-card">
+            <h2>🗂 Мои созданные голосования</h2>
+            <div id="myPollsContainer">
+                <div class="loading">Загрузка моих голосований...</div>
+            </div>
+        </div>
+    </div>
+
+    <div id="createPollTab" class="tab-content" style="display: none;">
+        <div class="user-polls-card">
+            <h2>➕ Создать голосование</h2>
+            <p style="margin-bottom: 1rem; color: #6b7280;">
+                После создания голосование будет отправлено на одобрение администратору.
+            </p>
+
+            <div class="form-group">
+                <label>Название голосования</label>
+                <input type="text" id="pollTitle" placeholder="Введите название">
+            </div>
+
+            <div class="form-group">
+                <label>Описание</label>
+                <textarea id="pollDescription" rows="3" placeholder="Введите описание"></textarea>
+            </div>
+
+            <div class="form-group">
+                <label>Варианты ответов</label>
+                <div id="optionsContainer">
+                    <div class="option-row">
+                        <input type="text" class="option-input" placeholder="Вариант 1">
+                        <button class="remove-option" onclick="removeOption(this)">×</button>
+                    </div>
+                    <div class="option-row">
+                        <input type="text" class="option-input" placeholder="Вариант 2">
+                        <button class="remove-option" onclick="removeOption(this)">×</button>
+                    </div>
+                </div>
+                <button class="add-option-btn" onclick="addOption()">+ Добавить вариант</button>
+            </div>
+
+            <button class="submit-btn" onclick="createUserPoll()">Отправить на одобрение</button>
+        </div>
+    </div>
+</div>
+
+<div id="resultsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-modal" onclick="closeModal()">&times;</span>
+        <div id="modalResults"></div>
+    </div>
+</div>
+
+<script>
+    let currentUser = null;
+    let userVotes = new Map();
+
+    document.addEventListener('DOMContentLoaded', function() {
+        checkAuth();
+    });
+
+    function checkAuth() {
+        const user = localStorage.getItem('user');
+        if (!user) {
+            window.location.href = '/login.html';
+            return;
+        }
+
+        currentUser = JSON.parse(user);
+        if (currentUser.role === 'admin') {
+            window.location.href = '/admin.html';
+            return;
+        }
+
+        document.getElementById('username').textContent = currentUser.username;
+        loadUserVotes();
+    }
+
+    function loadUserVotes() {
+        fetch('/api/user/my-votes')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    userVotes.clear();
+                    if (data.data) {
+                        data.data.forEach(vote => {
+                            userVotes.set(vote.pollId, true);
+                        });
+                    }
+                    showTab('active');
+                }
+            })
+            .catch(error => console.error('Error loading user votes:', error));
+    }
+
+    function showTab(tab) {
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        document.querySelectorAll('.tab-content').forEach(c => c.style.display = 'none');
+
+        if (tab === 'active') {
+            document.querySelectorAll('.tab')[0].classList.add('active');
+            document.getElementById('activePolls').style.display = 'block';
+            loadActivePolls();
+        } else if (tab === 'results') {
+            document.querySelectorAll('.tab')[1].classList.add('active');
+            document.getElementById('resultsTab').style.display = 'block';
+            loadAllResults();
+        } else if (tab === 'history') {
+            document.querySelectorAll('.tab')[2].classList.add('active');
+            document.getElementById('historyTab').style.display = 'block';
+            loadVoteHistory();
+        } else if (tab === 'myPolls') {
+            document.querySelectorAll('.tab')[3].classList.add('active');
+            document.getElementById('myPollsTab').style.display = 'block';
+            loadMyPolls();
+        } else if (tab === 'createPoll') {
+            document.querySelectorAll('.tab')[4].classList.add('active');
+            document.getElementById('createPollTab').style.display = 'block';
+        }
+    }
+
+    function loadActivePolls() {
+        const container = document.getElementById('activePollsContainer');
+        container.innerHTML = '<div class="loading">Загрузка активных голосований...</div>';
+
+        fetch('/api/polls/active')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderActivePolls(data.data);
+                } else {
+                    container.innerHTML = `<div class="empty-state"><p>${data.message}</p></div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                container.innerHTML = '<div class="empty-state"><p>Ошибка загрузки активных голосований</p></div>';
+            });
+    }
+
+    function renderActivePolls(polls) {
+        const container = document.getElementById('activePollsContainer');
+
+        if (!polls || polls.length === 0) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">🌙</div><p>Нет активных голосований</p></div>';
+            return;
+        }
+
+        container.innerHTML = '';
+
+        polls.forEach(poll => {
+            const pollCard = document.createElement('div');
+            pollCard.className = 'poll-card';
+            pollCard.id = `poll-${poll.id}`;
+
+            const hasVoted = userVotes.has(poll.id);
+
+            let voteButtonHtml = '';
+            if (hasVoted) {
+                voteButtonHtml = `
+                    <button class="vote-btn" disabled style="background: #94a3b8;">Вы уже проголосовали</button>
+                    <div class="voted-badge">✓ Вы проголосовали в этом опросе</div>
+                `;
+            } else {
+                voteButtonHtml = `<button class="vote-btn" id="vote-btn-${poll.id}" onclick="showVoteModal(${poll.id})">Проголосовать</button>`;
+            }
+
+            pollCard.innerHTML = `
+                <div class="poll-header">
+                    <h3 class="poll-title">${escapeHtml(poll.title)}</h3>
+                    <p class="poll-description">${escapeHtml(poll.description) || 'Нет описания'}</p>
+                    <div class="poll-meta">
+                        <span class="status-badge active">Активно</span>
+                        <span class="poll-creator">👤 ${escapeHtml(poll.creator) || 'Админ'}</span>
+                        <span class="poll-date">📅 ${new Date(poll.createdAt).toLocaleDateString()}</span>
+                    </div>
+                </div>
+                <div class="options-list" id="active-options-${poll.id}"></div>
+                ${voteButtonHtml}
+            `;
+
+            container.appendChild(pollCard);
+            loadPollOptions(poll.id, `active-options-${poll.id}`);
+        });
+    }
+
+    function loadPollOptions(pollId, containerId) {
+        fetch(`/api/polls/${pollId}/results`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderOptions(containerId, data.data.options, pollId);
+                }
+            })
+            .catch(error => console.error('Error loading options:', error));
+    }
+
+    function renderOptions(containerId, options, pollId) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        const hasVoted = userVotes.has(pollId);
+
+        container.innerHTML = '';
+        options.forEach(option => {
+            const optionDiv = document.createElement('div');
+            optionDiv.className = 'option-item';
+            optionDiv.innerHTML = `
+                <label class="option-label">
+                    <input type="radio" name="poll-${pollId}-options" value="${option.id}" ${hasVoted ? 'disabled' : ''}>
+                    <span class="option-text">${escapeHtml(option.text)}</span>
+                </label>
+            `;
+            container.appendChild(optionDiv);
+        });
+    }
+
+    function showVoteModal(pollId) {
+        const selectedOption = document.querySelector(`input[name="poll-${pollId}-options"]:checked`);
+        if (!selectedOption) {
+            showMessage('Выберите вариант ответа', 'error');
+            return;
+        }
+
+        if (confirm('Подтвердите ваш выбор')) {
+            submitVote(pollId, selectedOption.value);
+        }
+    }
+
+    function submitVote(pollId, optionId) {
+        fetch('/api/vote', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                pollId: parseInt(pollId),
+                optionId: parseInt(optionId)
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage('Спасибо! Ваш голос учтен', 'success');
+                    userVotes.set(pollId, true);
+                    loadActivePolls();
+                    loadUserVotes();
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                showMessage('Ошибка при голосовании', 'error');
+            });
+    }
+
+    function loadAllResults() {
+        const container = document.getElementById('allResults');
+        container.innerHTML = '<div class="loading">Загрузка результатов...</div>';
+
+        fetch('/api/polls')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    const visiblePolls = (data.data || []).filter(poll => poll.status !== 'pending' && poll.status !== 'rejected');
+                    renderAllResults(visiblePolls);
+                } else {
+                    container.innerHTML = `<div class="empty-state"><p>${data.message}</p></div>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                container.innerHTML = '<div class="empty-state"><p>Ошибка загрузки результатов</p></div>';
+            });
+    }
+
+    function renderAllResults(polls) {
+        const container = document.getElementById('allResults');
+
+        if (!polls || polls.length === 0) {
+            container.innerHTML = '<div class="empty-state"><div class="empty-state-icon">📊</div><p>Нет доступных результатов</p></div>';
+            return;
+        }
+
+        container.innerHTML = '<h2>📊 Результаты голосований</h2>';
+
+        polls.forEach(poll => {
+            const pollDiv = document.createElement('div');
+            pollDiv.className = 'results-container';
+            pollDiv.style.marginBottom = '2rem';
+            pollDiv.innerHTML = `
+                <div class="results-header">
+                    <h3>${escapeHtml(poll.title)}</h3>
+                    <p>${escapeHtml(poll.description) || 'Нет описания'}</p>
+                    <div class="poll-meta">
+                        <span class="status-badge ${poll.active ? 'active' : 'inactive'}">
+                            ${poll.active ? 'Активно' : 'Завершено'}
+                        </span>
+                    </div>
+                </div>
+                <div id="results-${poll.id}">
+                    <div class="loading">Загрузка результатов...</div>
+                </div>
+            `;
+            container.appendChild(pollDiv);
+
+            loadPollResults(poll.id, `results-${poll.id}`);
+        });
+    }
+
+    function loadPollResults(pollId, containerId) {
+        fetch(`/api/polls/${pollId}/results`)
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderPollResults(containerId, data.data);
+                }
+            })
+            .catch(error => console.error('Error loading results:', error));
+    }
+
+    function renderPollResults(containerId, data) {
+        const container = document.getElementById(containerId);
+        if (!container) return;
+
+        let html = `
+            <div class="results-details">
+                <div class="total-votes">
+                    Всего проголосовало: <strong>${data.totalVotes}</strong> ${getWordForm(data.totalVotes, 'человек', 'человека', 'человек')}
+                </div>
+            </div>
+        `;
+
+        data.options.forEach(option => {
+            const percentage = option.percentage || 0;
+            const votes = option.votes || 0;
+
+            html += `
+                <div class="result-item">
+                    <div class="result-header">
+                        <span>${escapeHtml(option.text)}</span>
+                        <span>${votes} ${getWordForm(votes, 'голос', 'голоса', 'голосов')}</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: ${percentage}%">
+                            ${percentage > 0 ? percentage + '%' : '0%'}
+                        </div>
+                    </div>
+                    <div class="progress-stats">
+                        <span>${percentage}% от всех голосов</span>
+                    </div>
+                </div>
+            `;
+        });
+
+        container.innerHTML = html;
+    }
+
+    function loadVoteHistory() {
+        const tbody = document.getElementById('historyBody');
+        tbody.innerHTML = '<tr><td colspan="3" class="loading">Загрузка истории...</td></tr>';
+
+        fetch('/api/user/my-votes')
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    renderHistory(data.data);
+                } else {
+                    tbody.innerHTML = `<tr><td colspan="3" class="loading">${data.message}</td></tr>`;
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                tbody.innerHTML = '<tr><td colspan="3" class="loading">Ошибка загрузки истории</td></tr>';
+            });
+    }
+
+    function renderHistory(votes) {
+        const tbody = document.getElementById('historyBody');
+
+        if (!votes || votes.length === 0) {
+            tbody.innerHTML = '<tr><td colspan="3" class="loading">Нет истории голосований</td></tr>';
+            return;
+        }
+
+        tbody.innerHTML = '';
+        votes.forEach(vote => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${escapeHtml(vote.pollTitle)}</td>
+                <td>${escapeHtml(vote.option)}</td>
+                <td>${new Date(vote.votedAt).toLocaleString()}</td>
+            `;
+            tbody.appendChild(row);
+        });
+    }
+
+    function loadMyPolls() {
+        const container = document.getElementById('myPollsContainer');
+        container.innerHTML = '<div class="loading">Загрузка моих голосований...</div>';
+
+        fetch('/api/user/polls')
+            .then(response => response.json())
+            .then(data => {
+                if (!data.success) {
+                    container.innerHTML = `<div class="empty-state"><p>${data.message}</p></div>`;
+                    return;
+                }
+
+                if (!data.data || data.data.length === 0) {
+                    container.innerHTML = '<div class="empty-state"><p>Вы еще не создавали голосования</p></div>';
+                    return;
+                }
+
+                container.innerHTML = data.data.map(poll => {
+                    let badgeClass = 'status-approved';
+                    let badgeText = 'Одобрено';
+
+                    if (poll.status === 'pending') {
+                        badgeClass = 'status-pending';
+                        badgeText = 'На одобрении';
+                    } else if (poll.status === 'rejected') {
+                        badgeClass = 'status-rejected';
+                        badgeText = 'Отклонено';
+                    } else if (poll.status === 'approved' && poll.active) {
+                        badgeClass = 'status-active';
+                        badgeText = 'Активно';
+                    } else if (poll.status === 'approved' && !poll.active) {
+                        badgeClass = 'status-approved';
+                        badgeText = 'Одобрено';
+                    }
+
+                    if (poll.status === 'approved' && !poll.active && (poll.totalVotes || 0) >= 0) {
+                        badgeText = poll.totalVotes > 0 ? 'Завершено' : badgeText;
+                    }
+
+                    return `
+                        <div class="user-poll-item">
+                            <h3>${escapeHtml(poll.title)}</h3>
+                            <p>${escapeHtml(poll.description || 'Нет описания')}</p>
+                            <div style="margin: 10px 0;">
+                                <span class="status-pill ${badgeClass}">${badgeText}</span>
+                                <span style="color:#6b7280;">Создано: ${new Date(poll.createdAt).toLocaleString()}</span>
+                            </div>
+                            <div style="color:#6b7280;">Голосов: ${poll.totalVotes || 0}</div>
+                            ${poll.adminComment ? `<div style="margin-top:8px; color:#374151;"><strong>Комментарий администратора:</strong> ${escapeHtml(poll.adminComment)}</div>` : ''}
+                        </div>
+                    `;
+                }).join('');
+            })
+            .catch(error => {
+                console.error(error);
+                container.innerHTML = '<div class="empty-state"><p>Ошибка загрузки моих голосований</p></div>';
+            });
+    }
+
+    function createUserPoll() {
+        const title = document.getElementById('pollTitle').value.trim();
+        const description = document.getElementById('pollDescription').value.trim();
+        const optionInputs = document.querySelectorAll('.option-input');
+
+        const options = [];
+        optionInputs.forEach(input => {
+            if (input.value.trim()) {
+                options.push(input.value.trim());
+            }
+        });
+
+        if (!title) {
+            showMessage('Введите название голосования', 'error');
+            return;
+        }
+
+        if (options.length < 2) {
+            showMessage('Добавьте минимум 2 варианта ответа', 'error');
+            return;
+        }
+
+        fetch('/api/user/polls', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({
+                title,
+                description,
+                options
+            })
+        })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showMessage(data.message, 'success');
+                    document.getElementById('pollTitle').value = '';
+                    document.getElementById('pollDescription').value = '';
+                    document.getElementById('optionsContainer').innerHTML = `
+                    <div class="option-row">
+                        <input type="text" class="option-input" placeholder="Вариант 1">
+                        <button class="remove-option" onclick="removeOption(this)">×</button>
+                    </div>
+                    <div class="option-row">
+                        <input type="text" class="option-input" placeholder="Вариант 2">
+                        <button class="remove-option" onclick="removeOption(this)">×</button>
+                    </div>
+                `;
+                    loadMyPolls();
+                    showTab('myPolls');
+                } else {
+                    showMessage(data.message, 'error');
+                }
+            })
+            .catch(error => {
+                console.error(error);
+                showMessage('Ошибка создания голосования', 'error');
+            });
+    }
+
+    function addOption() {
+        const container = document.getElementById('optionsContainer');
+        const optionRow = document.createElement('div');
+        optionRow.className = 'option-row';
+        optionRow.innerHTML = `
+            <input type="text" class="option-input" placeholder="Вариант ${container.children.length + 1}">
+            <button class="remove-option" onclick="removeOption(this)">×</button>
+        `;
+        container.appendChild(optionRow);
+    }
+
+    function removeOption(btn) {
+        const container = document.getElementById('optionsContainer');
+        if (container.children.length > 2) {
+            btn.parentElement.remove();
+        } else {
+            showMessage('Должно быть минимум 2 варианта', 'error');
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return text;
+        const div = document.createElement('div');
+        div.textContent = text;
+        return div.innerHTML;
+    }
+
+    function getWordForm(number, form1, form2, form5) {
+        number = Math.abs(number) % 100;
+        if (number >= 11 && number <= 19) return form5;
+
+        number = number % 10;
+        if (number === 1) return form1;
+        if (number >= 2 && number <= 4) return form2;
+        return form5;
+    }
+
+    function closeModal() {
+        document.getElementById('resultsModal').style.display = 'none';
+    }
+
+    function logout() {
+        fetch('/api/logout', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'}
+        })
+            .then(() => {
+                localStorage.removeItem('user');
+                window.location.href = '/login.html';
+            });
+    }
+
+    function showMessage(text, type) {
+        const oldMessage = document.querySelector('.message');
+        if (oldMessage) oldMessage.remove();
+
+        const message = document.createElement('div');
+        message.className = `message ${type}`;
+        message.textContent = text;
+        document.body.appendChild(message);
+
+        setTimeout(() => {
+            message.style.animation = 'slideIn 0.3s reverse';
+            setTimeout(() => message.remove(), 300);
+        }, 3000);
+    }
+
+    window.onclick = function(event) {
+        const modal = document.getElementById('resultsModal');
+        if (event.target == modal) {
+            modal.style.display = 'none';
+        }
+    }
+</script>
+</body>
+</html>

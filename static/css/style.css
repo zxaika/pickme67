@@ -1,0 +1,1102 @@
+/* Общие стили - чистые, светлые, профессиональные */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: #f5f7fa;
+    min-height: 100vh;
+    color: #1e293b;
+    line-height: 1.5;
+}
+
+/* Навигация */
+.navbar {
+    background: #ffffff;
+    padding: 1rem 2rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid #e2e8f0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.logo {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.user-info {
+    display: flex;
+    align-items: center;
+    gap: 1.5rem;
+}
+
+.username {
+    color: #475569;
+    font-weight: 500;
+    font-size: 0.95rem;
+    background: #f1f5f9;
+    padding: 0.4rem 1rem;
+    border-radius: 6px;
+}
+
+.logout-btn {
+    background: #ffffff;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    padding: 0.5rem 1.2rem;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+}
+
+.logout-btn:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+    border-color: #cbd5e1;
+}
+
+/* Контейнер */
+.container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+/* Заголовки */
+h1, h2, h3 {
+    color: #1e293b;
+    font-weight: 600;
+}
+
+h2 {
+    font-size: 1.5rem;
+    margin-bottom: 1.5rem;
+    color: #0f172a;
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 8px;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #2563eb;
+}
+
+/* Специально для заголовка "Мои голосования" */
+h2.my-polls-title {
+    color: #0f172a;
+    background: #ffffff;
+    padding: 1rem;
+    border-radius: 8px;
+    border-left: 4px solid #2563eb;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+/* Вкладки */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid #e2e8f0;
+    padding-bottom: 0.5rem;
+}
+
+.tab {
+    background: none;
+    padding: 0.6rem 1.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    border: none;
+    font-size: 0.95rem;
+    color: #64748b;
+}
+
+.tab.active {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.tab:hover:not(.active) {
+    background: #f1f5f9;
+    color: #1e293b;
+}
+
+/* Карточки голосований */
+.polls-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+}
+
+.poll-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    transition: all 0.2s;
+    border: 1px solid #e2e8f0;
+}
+
+.poll-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    border-color: #94a3b8;
+}
+
+.poll-header {
+    margin-bottom: 1.25rem;
+}
+
+.poll-title {
+    font-size: 1.25rem;
+    color: #0f172a;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.poll-description {
+    color: #475569;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    margin-bottom: 0.75rem;
+}
+
+.poll-meta {
+    display: flex;
+    gap: 1rem;
+    align-items: center;
+    margin-top: 0.5rem;
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: #64748b;
+}
+
+.poll-creator {
+    background: #f1f5f9;
+    padding: 0.2rem 0.8rem;
+    border-radius: 4px;
+    color: #475569;
+}
+
+/* Статус бейдж */
+.status-badge {
+    display: inline-block;
+    padding: 0.25rem 0.75rem;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.status-badge.active {
+    background: #22c55e;
+    color: #ffffff;
+}
+
+.status-badge.inactive {
+    background: #64748b;
+    color: #ffffff;
+}
+
+/* Варианты ответов */
+.options-list {
+    margin: 1.25rem 0;
+}
+
+.option-item {
+    margin-bottom: 0.75rem;
+}
+
+.option-label {
+    display: flex;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #ffffff;
+}
+
+.option-label:hover {
+    border-color: #2563eb;
+    background: #f8fafc;
+}
+
+.option-label input[type="radio"] {
+    margin-right: 1rem;
+    width: 18px;
+    height: 18px;
+    accent-color: #2563eb;
+}
+
+.option-text {
+    color: #1e293b;
+    font-size: 0.95rem;
+}
+
+/* Кнопки */
+.vote-btn, .submit-btn {
+    width: 100%;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: 500;
+}
+
+.vote-btn:hover:not(:disabled),
+.submit-btn:hover {
+    background: #1d4ed8;
+}
+
+.vote-btn:disabled {
+    background: #94a3b8;
+    cursor: not-allowed;
+}
+
+.voted-badge {
+    background: #22c55e;
+    color: #ffffff;
+    padding: 0.75rem;
+    border-radius: 8px;
+    text-align: center;
+    margin-top: 1rem;
+    font-weight: 500;
+}
+
+/* Результаты голосования - четкие прогресс-бары */
+.results-container {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-top: 2rem;
+    border: 1px solid #e2e8f0;
+}
+
+.results-header {
+    margin-bottom: 2rem;
+}
+
+.results-header h3 {
+    color: #0f172a;
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+}
+
+.results-header p {
+    color: #475569;
+}
+
+.result-item {
+    margin-bottom: 1.5rem;
+    background: #ffffff;
+    padding: 1rem;
+    border: 1px solid #f1f5f9;
+    border-radius: 8px;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.5rem;
+    color: #1e293b;
+    font-weight: 500;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 32px;
+    background: #f1f5f9;
+    border-radius: 6px;
+    overflow: hidden;
+    position: relative;
+    margin: 0.5rem 0;
+}
+
+.progress-fill {
+    height: 100%;
+    background: #2563eb;
+    transition: width 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    padding-right: 12px;
+    color: #ffffff;
+    font-size: 0.9rem;
+    font-weight: 500;
+    min-width: 45px;
+}
+
+.progress-stats {
+    display: flex;
+    justify-content: space-between;
+    color: #64748b;
+    font-size: 0.9rem;
+    margin-top: 0.25rem;
+}
+
+/* Таблица истории */
+.history-table {
+    width: 100%;
+    border-collapse: collapse;
+    background: #ffffff;
+    border-radius: 8px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+}
+
+.history-table th,
+.history-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid #f1f5f9;
+}
+
+.history-table th {
+    background: #f8fafc;
+    color: #475569;
+    font-weight: 600;
+}
+
+.history-table td {
+    color: #1e293b;
+}
+
+.history-table tr:last-child td {
+    border-bottom: none;
+}
+
+.history-table tr:hover {
+    background: #f8fafc;
+}
+
+/* Статистика для админа */
+.poll-stats {
+    display: flex;
+    gap: 1rem;
+    margin: 1.5rem 0;
+    padding: 1rem 0;
+    border-top: 1px solid #e2e8f0;
+    border-bottom: 1px solid #e2e8f0;
+}
+
+.stat-item {
+    flex: 1;
+    text-align: center;
+    background: #f8fafc;
+    padding: 1rem;
+    border-radius: 8px;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: #2563eb;
+}
+
+.stat-label {
+    font-size: 0.85rem;
+    color: #64748b;
+    text-transform: uppercase;
+}
+
+/* Действия с голосованиями */
+.poll-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-top: 1rem;
+    flex-wrap: wrap;
+}
+
+.action-btn {
+    flex: 1;
+    min-width: 80px;
+    padding: 0.5rem;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.2s;
+    font-size: 0.9rem;
+    background: #f1f5f9;
+    color: #475569;
+}
+
+.action-btn.activate {
+    background: #22c55e;
+    color: #ffffff;
+}
+
+.action-btn.activate:hover {
+    background: #16a34a;
+}
+
+.action-btn.deactivate {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.action-btn.deactivate:hover {
+    background: #dc2626;
+}
+
+.action-btn.delete {
+    background: #ef4444;
+    color: #ffffff;
+}
+
+.action-btn.delete:hover {
+    background: #dc2626;
+}
+
+.action-btn.results {
+    background: #2563eb;
+    color: #ffffff;
+}
+
+.action-btn.results:hover {
+    background: #1d4ed8;
+}
+
+/* Модальное окно */
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    z-index: 1000;
+}
+
+.modal-content {
+    background: #ffffff;
+    width: 90%;
+    max-width: 600px;
+    margin: 50px auto;
+    border-radius: 12px;
+    padding: 2rem;
+    max-height: 80vh;
+    overflow-y: auto;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+}
+
+.close-modal {
+    float: right;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #94a3b8;
+    transition: color 0.2s;
+}
+
+.close-modal:hover {
+    color: #475569;
+}
+
+/* Уведомления */
+.message {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 1rem 2rem;
+    border-radius: 8px;
+    color: #ffffff;
+    font-weight: 500;
+    animation: slideIn 0.3s;
+    z-index: 1001;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.message.success {
+    background: #22c55e;
+}
+
+.message.error {
+    background: #ef4444;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+/* Загрузка */
+.loading {
+    text-align: center;
+    padding: 3rem;
+    color: #64748b;
+}
+
+/* Формы */
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #475569;
+    font-weight: 500;
+}
+
+.form-group input,
+.form-group textarea {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+    outline: none;
+    border-color: #2563eb;
+    box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1);
+}
+
+/* Строки опций */
+.option-row {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+    align-items: center;
+}
+
+.option-row input {
+    flex: 1;
+}
+
+.remove-option {
+    background: #f1f5f9;
+    color: #64748b;
+    border: 1px solid #e2e8f0;
+    width: 36px;
+    height: 36px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 1.2rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.remove-option:hover {
+    background: #fee2e2;
+    color: #ef4444;
+    border-color: #fecaca;
+}
+
+.add-option-btn {
+    background: #f1f5f9;
+    color: #2563eb;
+    border: 1px dashed #94a3b8;
+    padding: 0.5rem 1rem;
+    border-radius: 6px;
+    cursor: pointer;
+    margin-top: 0.5rem;
+    font-size: 0.9rem;
+    transition: all 0.2s;
+}
+
+.add-option-btn:hover {
+    background: #e2e8f0;
+    border-color: #2563eb;
+}
+
+/* Страница входа и регистрации */
+.auth-container {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    width: 100%;
+    max-width: 400px;
+    margin: 100px auto;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    border: 1px solid #e2e8f0;
+}
+
+.auth-container .logo {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-container .logo h1 {
+    color: #2563eb;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.auth-container .logo p {
+    color: #64748b;
+}
+
+.auth-tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 2rem;
+    background: #f1f5f9;
+    padding: 0.25rem;
+    border-radius: 8px;
+}
+
+.auth-tab {
+    flex: 1;
+    background: none;
+    border: none;
+    padding: 0.5rem;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.95rem;
+    color: #64748b;
+    transition: all 0.2s;
+}
+
+.auth-tab.active {
+    background: #ffffff;
+    color: #2563eb;
+    font-weight: 500;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.auth-form {
+    display: block;
+}
+
+.auth-form.hidden {
+    display: none;
+}
+
+.auth-btn {
+    width: 100%;
+    background: #2563eb;
+    color: #ffffff;
+    border: none;
+    padding: 0.75rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background 0.2s;
+    font-weight: 500;
+    margin-top: 1rem;
+}
+
+.auth-btn:hover {
+    background: #1d4ed8;
+}
+
+.auth-link {
+    text-align: center;
+    margin-top: 1.5rem;
+    color: #64748b;
+    font-size: 0.9rem;
+}
+
+.auth-link span {
+    color: #2563eb;
+    cursor: pointer;
+    text-decoration: underline;
+}
+
+/* Детали результатов */
+.results-details {
+    margin-bottom: 2rem;
+}
+
+.total-votes {
+    color: #1e293b;
+    font-size: 1rem;
+    padding: 1rem;
+    background: #f8fafc;
+    border-radius: 8px;
+    text-align: center;
+    border: 1px solid #e2e8f0;
+}
+
+.total-votes strong {
+    color: #2563eb;
+    font-size: 1.2rem;
+}
+
+/* Публичная страница результатов */
+.public-container {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.public-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.public-header h1 {
+    color: #2563eb;
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+}
+
+.public-header p {
+    color: #64748b;
+}
+
+.public-poll-card {
+    background: #ffffff;
+    border-radius: 12px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.public-poll-card h2 {
+    color: #0f172a;
+    font-size: 1.5rem;
+    margin-bottom: 0.5rem;
+    background: none;
+    padding: 0;
+    border-left: none;
+    box-shadow: none;
+}
+
+.public-poll-card .description {
+    color: #475569;
+    margin-bottom: 1.5rem;
+}
+
+.public-footer {
+    text-align: center;
+    margin-top: 3rem;
+    padding-top: 2rem;
+    border-top: 1px solid #e2e8f0;
+    color: #64748b;
+}
+
+.public-footer a {
+    color: #2563eb;
+    text-decoration: none;
+}
+
+.public-footer a:hover {
+    text-decoration: underline;
+}
+
+/* Пустые состояния */
+.empty-state {
+    text-align: center;
+    padding: 3rem;
+    background: #ffffff;
+    border-radius: 12px;
+    border: 2px dashed #e2e8f0;
+}
+
+.empty-state p {
+    color: #94a3b8;
+    font-size: 1rem;
+}
+
+.empty-state-icon {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    opacity: 0.5;
+}
+
+/* Адаптивность */
+@media (max-width: 768px) {
+    .polls-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .tabs {
+        flex-direction: column;
+    }
+
+    .poll-meta {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .poll-actions {
+        flex-direction: column;
+    }
+
+    .auth-container {
+        margin: 20px;
+    }
+}
+
+/* Публичная страница результатов */
+.public-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 0 1.5rem;
+}
+
+.public-header {
+    text-align: center;
+    margin-bottom: 2.5rem;
+}
+
+.public-header h1 {
+    color: #2563eb;
+    font-size: 2.2rem;
+    margin-bottom: 0.5rem;
+}
+
+.public-header p {
+    color: #64748b;
+    font-size: 1.1rem;
+}
+
+.public-poll-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 2rem;
+    margin-bottom: 2rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    transition: all 0.3s ease;
+}
+
+.public-poll-card:hover {
+    box-shadow: 0 8px 24px rgba(37, 99, 235, 0.1);
+    border-color: #2563eb;
+}
+
+.public-poll-card h2 {
+    color: #0f172a;
+    font-size: 1.6rem;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    background: none;
+    padding: 0;
+    border-left: none;
+    box-shadow: none;
+}
+
+.public-poll-card .description {
+    color: #475569;
+    font-size: 1rem;
+    margin-bottom: 1rem;
+    line-height: 1.6;
+}
+
+/* Стили для публичной страницы */
+.public-footer {
+    text-align: center;
+    margin-top: 4rem;
+    padding: 2rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 16px;
+}
+
+.public-footer p {
+    color: #475569;
+    font-size: 1rem;
+}
+
+.public-footer a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    transition: all 0.2s;
+}
+
+.public-footer a:hover {
+    background: #e2e8f0;
+    text-decoration: none;
+}
+
+/* Кнопка повторной попытки */
+.retry-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    margin-top: 1rem;
+}
+
+.retry-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+/* Анимация загрузки */
+.loading::after {
+    content: '';
+    display: inline-block;
+    width: 20px;
+    height: 20px;
+    margin-left: 10px;
+    border: 3px solid #e2e8f0;
+    border-top-color: #2563eb;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+/* Сообщение об ошибке */
+.error-message {
+    color: #ef4444;
+    font-size: 0.95rem;
+    margin-top: 0.5rem;
+    text-align: center;
+}
+
+.nav-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.nav-link:hover {
+    background: #f1f5f9;
+    color: #1d4ed8;
+}
+
+.retry-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    margin-top: 1rem;
+    text-decoration: none;
+    display: inline-block;
+}
+
+.retry-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+    text-decoration: none;
+    color: white;
+}
+
+.nav-link {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 0.4rem 0.8rem;
+    border-radius: 6px;
+    transition: all 0.2s;
+}
+
+.nav-link:hover {
+    background: #f1f5f9;
+    color: #1d4ed8;
+}
+
+.retry-btn {
+    background: #2563eb;
+    color: white;
+    border: none;
+    padding: 0.8rem 2rem;
+    border-radius: 12px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+    margin-top: 1rem;
+}
+
+.retry-btn:hover {
+    background: #1d4ed8;
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(37, 99, 235, 0.3);
+}
+
+.public-footer {
+    text-align: center;
+    margin-top: 4rem;
+    padding: 2rem;
+    border-top: 1px solid #e2e8f0;
+    background: #f8fafc;
+    border-radius: 16px;
+}
+
+.public-footer p {
+    color: #475569;
+    font-size: 1rem;
+    margin: 0.5rem 0;
+}
+
+.public-footer a {
+    color: #2563eb;
+    text-decoration: none;
+    font-weight: 600;
+    transition: color 0.2s;
+}
+
+.public-footer a:hover {
+    color: #1d4ed8;
+    text-decoration: underline;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+    background: #ffffff;
+    border-radius: 24px;
+    border: 2px dashed #e2e8f0;
+    margin: 2rem 0;
+}
+
+.empty-state-icon {
+    font-size: 4rem;
+    margin-bottom: 1rem;
+    opacity: 0.6;
+}
+
+.empty-state p {
+    color: #64748b;
+    font-size: 1.2rem;
+    margin-bottom: 1.5rem;
+}
