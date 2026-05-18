@@ -135,7 +135,48 @@ func main() {
 	adminRouter.HandleFunc("/analytics", getAnalytics).Methods("GET", "OPTIONS")
 	adminRouter.HandleFunc("/logs", getLogs).Methods("GET", "OPTIONS")
 
-	r.PathPrefix("/").Handler(http.FileServer(http.Dir("./static")))
+	// Главная страница сайта
+	r.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/public.html")
+	}).Methods("GET")
+
+	// Красивые URL без .html
+	r.HandleFunc("/public-vote", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/public.html")
+	}).Methods("GET")
+
+	r.HandleFunc("/login", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/login.html")
+	}).Methods("GET")
+
+	r.HandleFunc("/admin", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/admin.html")
+	}).Methods("GET")
+
+	r.HandleFunc("/user", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/user.html")
+	}).Methods("GET")
+
+	// Раздача CSS
+	r.PathPrefix("/css/").Handler(
+		http.StripPrefix("/css/",
+			http.FileServer(http.Dir("./static/css/")),
+		),
+	)
+
+	// Раздача JavaScript
+	r.PathPrefix("/js/").Handler(
+		http.StripPrefix("/js/",
+			http.FileServer(http.Dir("./static/js/")),
+		),
+	)
+
+	// Раздача изображений
+	r.PathPrefix("/images/").Handler(
+		http.StripPrefix("/images/",
+			http.FileServer(http.Dir("./static/images/")),
+		),
+	)
 
 	allowedOrigins := getAllowedOrigins()
 	c := cors.New(cors.Options{
