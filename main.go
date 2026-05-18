@@ -105,7 +105,7 @@ func main() {
 	r.HandleFunc("/api/polls", getAllPolls).Methods("GET", "OPTIONS")
 	r.HandleFunc("/api/polls/active", getActivePolls).Methods("GET", "OPTIONS")
 	r.HandleFunc("/api/polls/{id}/results", getPollResults).Methods("GET", "OPTIONS")
-	r.HandleFunc("/api/health", healthCheck).Methods("GET", "OPTIONS")
+	r.HandleFunc("/api/health", healthCheck).Methods("GET", "HEAD", "OPTIONS")
 	r.Handle("/api/vote", authMiddleware(http.HandlerFunc(vote))).Methods("POST", "OPTIONS")
 	r.HandleFunc("/api/fingerprint", getFingerprint).Methods("GET", "OPTIONS")
 
