@@ -140,7 +140,6 @@ func main() {
 		http.ServeFile(w, r, "./static/public.html")
 	}).Methods("GET")
 
-	// Красивые URL без .html
 	r.HandleFunc("/public-vote", func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./static/public.html")
 	}).Methods("GET")

@@ -10,7 +10,7 @@
 <div class="navbar">
     <div class="logo">🗳️ Голосование</div>
     <div class="user-info">
-        <a href="/public.html" style="color: #2563eb; text-decoration: none; margin-right: 1rem;">Публичные результаты</a>
+        <a href="/public-vote" style="color: #2563eb; text-decoration: none; margin-right: 1rem;">Публичные результаты</a>
     </div>
 </div>
 
@@ -107,9 +107,9 @@
 
                     setTimeout(() => {
                         if (data.data.role === 'admin') {
-                            window.location.href = '/admin.html';
+                            window.location.href = '/admin';
                         } else {
-                            window.location.href = '/user.html';
+                            window.location.href = '/user';
                         }
                     }, 1000);
                 } else {
@@ -212,9 +212,9 @@
         if (user) {
             const userData = JSON.parse(user);
             if (userData.role === 'admin') {
-                window.location.href = '/admin.html';
+                window.location.href = '/admin';
             } else {
-                window.location.href = '/user.html';
+                window.location.href = '/user';
             }
         }
     });
